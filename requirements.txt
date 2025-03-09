@@ -1,0 +1,6 @@
+selenium
+psycopg2-binary
+requests
+unidecode
+chromedriver_autoinstaller
+pandas
