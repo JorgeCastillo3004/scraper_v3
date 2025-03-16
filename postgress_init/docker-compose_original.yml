@@ -1,0 +1,15 @@
+version: '3'
+
+services:
+  postgres-sports:
+    image: postgres:16.1
+    container_name: sports_container
+    environment:
+      POSTGRES_DB: sports_db
+      POSTGRES_USER: wohhu
+      POSTGRES_PASSWORD: caracas123
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./db-DDL.sql:/docker-entrypoint-initdb.d/db-DDL.sql
+      - ./Data/sports:/var/lib/postgresql/data
