@@ -1,0 +1,7 @@
+{
+    "get_news_m1": true,
+    "sports_link": false,
+    "update_links": true,
+    "get_news": false,
+    "DATA_BASE": true
+}

@@ -1,0 +1,143 @@
+{
+    "FOOTBALL": {
+        "enable": true,
+        "mode": "BY_TEAM"
+    },
+    "TENNIS": {
+        "enable":true,
+        "mode": "BOTH"
+    },
+    "BASKETBALL": {
+        "enable": false,
+        "mode": "BY_TEAM"
+    },
+    "HOCKEY": {
+        "enable": false,
+        "mode": "BY_TEAM"
+    },
+    "DARTS": {
+        "enable": false,
+        "mode": "BOTH"
+    },
+    "SNOOKER": {
+        "enable": false,
+        "mode": "BOTH"
+    },
+    "HANDBALL": {
+        "enable": false,
+        "mode": "BOTH"
+    },
+    "GOLF": {
+        "enable": true,
+        "mode": "BOTH"
+    },
+    "AM. FOOTBALL": {
+        "enable": true,
+        "mode": "BY_TEAM"
+    },
+    "AUSSIE_RULES": {
+        "enable": false,
+        "mode": "BY_TEAM"
+    },
+    "BADMINTON": {
+        "enable": false,
+        "mode": "BY_TEAM"
+    },
+    "BANDY": {
+        "enable": false,
+        "mode": "BY_TEAM"
+    },
+    "BASEBALL": {
+        "enable": false,
+        "mode": "BY_TEAM"
+    },
+    "BEACH_SOCCER": {
+        "enable": false,
+        "mode": "BY_TEAM"
+    },
+    "BEACH_VOLLEYBALL": {
+        "enable": false,
+        "mode": "BY_TEAM"
+    },
+    "BOXING": {
+        "enable": false,
+        "mode": "INDIVIDUAL"
+    },
+    "CRICKET": {
+        "enable": false,
+        "mode": "BY_TEAM"
+    },
+    "CYCLING": {
+        "enable": false,
+        "mode": "INDIVIDUAL"
+    },
+    "ESPORTS": {
+        "enable": false,
+        "mode": "BY_TEAM"
+    },
+    "FIELD_HOCKEY": {
+        "enable": false,
+        "mode": "BY_TEAM"
+    },
+    "FLOORBALL": {
+        "enable": false,
+        "mode": "BY_TEAM"
+    },
+    "FUTSAL": {
+        "enable": false,
+        "mode": "BY_TEAM"
+    },
+    "HORSE_RACING": {
+
+        "enable": false,
+        "mode": "INDIVIDUAL"
+    },
+    "KABADDI": {
+        "enable": false,
+        "mode": "BY_TEAM"
+    },
+    "MMA": {
+        "enable": false,
+        "mode": "BY_TEAM"
+    },
+    "MOTORSPORT": {
+        "enable": false,
+        "mode": "BY_TEAM"
+    },
+    "MOTOR SPORT": {
+        "enable": false,
+        "mode": "INDIVIDUAL"
+    },
+    "NETBALL": {
+        "enable": false,
+        "mode": "BY_TEAM"
+    },
+    "PES\u00c4PALLO": {
+        "enable": false,
+        "mode": "BY_TEAM"
+    },
+    "RUGBY_LEAGUE": {
+        "enable": false,
+        "mode": "BY_TEAM"
+    },
+    "RUGBY_UNION": {
+        "enable": false,
+        "mode": "BY_TEAM"
+    },
+    "TABLE_TENNIS": {
+        "enable": false,
+        "mode": "BY_TEAM"
+    },
+    "VOLLEYBALL": {
+        "enable": false,
+        "mode": "BY_TEAM"
+    },
+    "WATER_POLO": {
+        "enable": false,
+        "mode": "BY_TEAM"
+    },
+    "WINTER_SPORTS": {
+        "enable": false,
+        "mode": "BY_TEAM"
+    }
+}
