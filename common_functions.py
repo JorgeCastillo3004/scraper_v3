@@ -19,6 +19,8 @@ import json
 import os
 import re
 import time
+import uuid
+
 local_time_naive = datetime.now()
 utc_time_naive = datetime.utcnow()
 time_difference_naive = utc_time_naive - local_time_naive
@@ -297,6 +299,9 @@ def random_id():
     rand_id = rand_id + str(random.choice([0, 9]))
     digits = ''.join([str(random.randint(0, 9)) for i in range(4)])
     return rand_id+digits
+
+def generate_uuid():    
+    return uuid.uuid4()
 
 def random_id_text(textinput):
     textinput = textinput.replace(' ', '')

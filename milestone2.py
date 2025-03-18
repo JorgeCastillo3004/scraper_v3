@@ -73,7 +73,7 @@ def get_league_data(driver, league_team, sport_name):
 
     # image_path = image_path.replace('images/logos/','')
     league_id = random_id_text(sport_name + league_team)
-    season_id = random_id() 
+    season_id = generate_uuid() 
     ligue_tornamen = {"sport_id":sport_id,"league_id":league_id,"season_id":season_id, 'sport':sport, 'league_country': league_country,
                      'league_name': league_name,'season_name':season_name, 'league_logo':image_path,
                       'league_name_i18n':'', 'season_end':datetime.now(), 'season_start':datetime.now(),
@@ -94,7 +94,7 @@ def get_league_data_boxing(driver, league_team, sport_name):
     save_image(driver, image_url, image_path)
     image_path = image_path.replace('images/logos/','')
     league_id = random_id_text(sport_name + league_team)
-    season_id = random_id() 
+    season_id = generate_uuid() 
     ligue_tornamen = {"sport_id":sport_id,"league_id":league_id,"season_id":season_id, 'sport':sport, 'league_country': '',
                      'league_name': league_name,'season_name':season_name, 'league_logo':image_path,
                       'league_name_i18n':'', 'season_end':datetime.now(), 'season_start':datetime.now()}
@@ -115,7 +115,7 @@ def get_teams_data(driver, sport_id, league_id, season_id, team_info):
     save_image(driver, image_url, image_path)
     logo_path = image_path.replace('images/logos/','')
     team_id = random_id_text(sport_name + team_name)
-    instance_id = random_id()   
+    instance_id = generate_uuid()   
     meta_dict = str({'statistics':team_info['statistics'], 'last_results':team_info['last_results']})
     team_info = {"team_id":team_id,"team_position":team_info['position'], "team_country":team_country,"team_desc":'', 'team_logo':logo_path,\
              'team_name': team_name,'sport_id': sport_id, 'league_id':league_id, 'season_id':season_id,\
@@ -279,7 +279,7 @@ def get_player_data(driver):
     player_photo = image_path.replace('images/players/','')
 
     player_position = profile_block.find_element(By.CLASS_NAME, 'typo-participant-info-bold').text
-    player_id = random_id()
+    player_id = generate_uuid()
     player_dict = {'player_id':player_id, 'player_country':player_country, 'player_dob':player_dob, 'player_name':player_name,\
      'player_photo':player_photo, 'player_position':player_position}
     return player_dict
@@ -444,7 +444,7 @@ def get_racer_info(driver):
     image_path = random_name_logos(player_name, folder = 'images/players/')
     save_image(driver, image_url, image_path)
     player_photo = image_path.replace('images/players/','')
-    player_id = random_id()
+    player_id = generate_uuid()
     player_dict = {'player_id':player_id, 'player_country':player_country, 'player_dob':player_dob, 'player_name':player_name,\
      'player_photo':player_photo, 'player_position':dict_info['standings'], 'player_meta': ''}
         
@@ -454,7 +454,7 @@ def save_racer_team(dict_racer, season_id):
     dict_racer['team_id'] = random_id_text("MOTOR SPORT" + dict_racer['team_name']+ dict_racer['name'])
     dict_racer['season_id'] = season_id
     dict_racer['sport_id'] = random_id_text("MOTOR SPORT")
-    dict_racer['instance_id'] = random_id()    
+    dict_racer['instance_id'] = generate_uuid()    
     dict_racer['league_id'] = random_id_text("MOTOR SPORT" + dict_racer['sport_name'])
     dict_racer['team_country'] = dict_racer['player_country']
     dict_racer['team_desc'] = dict_racer['team_name']

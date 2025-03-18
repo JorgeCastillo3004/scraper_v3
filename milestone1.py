@@ -193,7 +193,7 @@ def get_news_info_v2(driver, dict_news):
 	image_path = 'images/news/full_images/' + dict_news['image'].replace('.avif','.png')
 	save_image(driver, image_url, image_path)
 	mentions = get_mentions(driver)
-	dict_news['news_id']= random_id()
+	dict_news['news_id']= generate_uuid()
 	dict_news['news_summary'] = summary.text
 	dict_news['news_content'] = body_html
 	dict_news['image'] = dict_news['image'].replace('.avif','.png')
