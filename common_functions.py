@@ -301,7 +301,7 @@ def random_id():
     return rand_id+digits
 
 def generate_uuid():    
-    return uuid.uuid4()
+    return str(uuid.uuid4())
 
 def random_id_text(textinput):
     textinput = textinput.replace(' ', '')
