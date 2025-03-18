@@ -49,8 +49,8 @@ def main():
 		#  s "FOOTBALL", "TENNIS", "BASKETBALL", "FEATURES", "AMERICAN_SPORTS",  "GOLF",Ready
 	if create_leagues_flag:
 		# create_leagues(driver, ["BOXING"])
-		create_leagues(driver, ["MOTOR SPORT"])
-		# ["FOOTBALL", "BASKETBALL","BASEBALL", "AM. FOOTBALL", "HOCKEY", "TENNIS","GOLF", "BOXING",'FORMULA 1']
+		# create_leagues(driver, ["MOTOR SPORT"])
+		create_leagues(["FOOTBALL", "BASKETBALL","BASEBALL", "AM. FOOTBALL", "HOCKEY", "TENNIS","GOLF", "BOXING",'FORMULA 1'])
 
 	if teams_creation_flag:
 		teams_creation(driver, ["FOOTBALL", "BASKETBALL","BASEBALL", "AM. FOOTBALL", "HOCKEY"])
