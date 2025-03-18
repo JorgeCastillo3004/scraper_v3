@@ -39,7 +39,7 @@ def get_time_date_format(date, section ='results'):
     time = dt_object.time()
     return date, time
 
-def get_result(row, section = 'results'):
+def get_result(row, country_id, section = 'results'):
     print("################ INSIDE GET RESULT ################")
     print("Row: ", row.text)
     home_xpath_expression = ".//div[contains(@class, 'homeParticipant')]"
@@ -68,7 +68,8 @@ def get_result(row, section = 'results'):
     match_id = random_id()
     result_dict = {'match_id':match_id,'match_date':match_date,'start_time':'', 'end_time':'',\
                     'name':home_participant + '-' + away_participant,'home':home_participant,'visitor':away_participant,\
-                    'home_result':home_result,  'visitor_result':away_result, 'link_details':url_details,'place':''}
+                    'home_result':home_result,  'visitor_result':away_result, 'link_details':url_details,'place':'',
+                    'country_id':country_id}
     print("Result dict: ", result_dict)
     
     return result_dict
@@ -134,7 +135,7 @@ def extract_info_results_old(driver, start_index, results_block, section_name, c
     print(round_enable)
     return start_index + processed_index, round_enable
 
-def extract_info_results(driver, start_index, results_block, section_name, country_league, list_rounds_ready):  
+def extract_info_results(driver, start_index, results_block, section_name, country_league, list_rounds_ready, country_id):
 
     print("Total rows: ",len(results_block))
      # list to save round name, index_start index_end
@@ -159,7 +160,7 @@ def extract_info_results(driver, start_index, results_block, section_name, count
                 if not 'event__header' in HTML:
                     count = 1
         if 'Click for match detail!' in HTML: # EXTRACT MATCH INFO
-            result = get_result(result, section = section_name)
+            result = get_result(result, country_id, section = section_name)
             print("Result: ", result)
             all_list_results.append(result)
         else:
@@ -261,7 +262,7 @@ def confirm_results(driver, section_name, max_count = 10):
                 print(stop)
         time.sleep(0.3)
 
-def navigate_through_rounds(driver, country_league, list_rounds ,section_name = 'results'):
+def navigate_through_rounds(driver, country_league, country_id,  list_rounds ,section_name = 'results'):
     global count_sub_section, event_number  
     xpath_expression = '//div[@class="leagues--static event--leagues {}"]/div/div'.format(section_name)
     last_procesed_index = 0
@@ -274,7 +275,8 @@ def navigate_through_rounds(driver, country_league, list_rounds ,section_name = 
         more_rounds_loaded = False
         print("last_procesed_index: ", last_procesed_index)
         
-        last_procesed_index, click_more_enable = extract_info_results(driver, last_procesed_index, current_results, section_name, country_league, list_rounds)
+        last_procesed_index, click_more_enable = extract_info_results(driver, last_procesed_index,
+                             current_results, section_name, country_league, list_rounds, country_id)
         click_more_enable = False
         if click_more_enable:
             more_rounds_loaded = click_show_more_rounds(driver, current_results, section_name) # UNCOMENT ## URGENT DELETE      
@@ -457,7 +459,7 @@ def get_complete_match_info(driver, country_league, sport_name, league_id, seaso
                 wait_load_details(driver, url_details)
                 event_info = get_match_info(driver, event_info)
                 # print("event_info part 1: ", event_info)
-                
+                event_info['tournament_id'] = ''
                 event_info['statistic'] = get_statistics_game(driver)
                 event_info['league_id'] = league_id
                 event_info['season_id'] = season_id
@@ -526,10 +528,10 @@ def get_complete_match_info(driver, country_league, sport_name, league_id, seaso
                     print("NEW MATCH ADDED: ")
                     if section =="results":
                         # SET EVENT STATE
-                        event_info['status'] = 'R'
+                        event_info['status'] = 'completed'
                     elif section =="fixtures":
                         # SET EVENT STATE
-                        event_info['status'] = 'P'
+                        event_info['status'] = 'schedule'
                     save_math_info(event_info)
                     save_details_math_info(dict_home)
                     save_details_math_info(dict_visitor)
@@ -873,6 +875,9 @@ def results_fixtures_extraction(driver, list_sports, name_section = 'results'):
                     league_info['league_name'] = league_name
                     league_info['sport_name'] = sport_name
                     league_info['sport_id'] = dict_sport_id[sport_name]             
+                    print_section("Section league info, country_id")
+                    country_id = league_info['country_id']
+                    print(country_id)
                     print(league_info)
                     # list_rounds = get_rounds_ready(league_info['league_id'], league_info['season_id'])
                     list_rounds = []
@@ -923,7 +928,7 @@ def results_fixtures_extraction(driver, list_sports, name_section = 'results'):
                             
                             # START NAVIGATION THROUGH ROUNDS
                             print("Navigate navigate_through_rounds")
-                            navigate_through_rounds(driver, league_name, list_rounds, section_name = name_section)
+                            navigate_through_rounds(driver, league_name, country_id, list_rounds, section_name = name_section)
 
                             if not individual_sport:
                                 get_complete_match_info(driver, league_name, sport_name, league_info['league_id'],

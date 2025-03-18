@@ -303,15 +303,16 @@ def save_math_info(dict_match):
     "status": 40,
     "statistic": 1600}
 
-    for key, value in dict_match.items():
-        try:
-            print(f"{key} {len(value)}/{table_dict[key]} {value}")
-        except:
-            print("Possible error: ")
-            print(f"key: {key}, value:{value} #")
-    query = "INSERT INTO match VALUES(%(match_id)s, %(match_country)s, %(end_time)s,\
-     %(match_date)s, %(name)s, %(place)s, %(start_time)s, %(rounds)s, %(season_id)s, \
-         %(status)s, %(statistic)s, %(league_id)s, %(stadium_id)s)"
+    # for key, value in dict_match.items():
+    #     try:
+    #         print(f"{key} {len(value)}/{table_dict[key]} {value}")
+    #     except:
+    #         print("Possible error: ")
+    #         print(f"key: {key}, value:{value} #")
+    query = "INSERT INTO match VALUES(%(match_id)s, %(country_id)s, %(end_time)s,\
+     %(match_date)s, %(name)s, %(place)s, %(start_time)s, %(league_id)s, \
+     %(stadium_id)s, %(tournament_id)s,%(rounds)s, %(season_id)s, \
+         %(statistic)s, %(status)s)"
     cur = con.cursor()
     cur.execute(query, dict_match)
     con.commit()
@@ -330,7 +331,7 @@ def save_score_info(dict_match):
     con.commit()
 
 def save_stadium(dict_match):
-    query = "INSERT INTO stadium VALUES(%(stadium_id)s, %(capacity)s, %(country)s,\
+    query = "INSERT INTO stadium VALUES(%(stadium_id)s, %(capacity)s,\
      %(desc_i18n)s, %(name)s, %(photo)s)"
     cur = con.cursor()
     cur.execute(query, dict_match)
