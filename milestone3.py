@@ -68,8 +68,9 @@ def get_teams_info_part2(driver, league_inf, team_info):
 	image_path = random_name_logos(team_name, folder = 'images/logos/')
 	save_image(driver, image_url, image_path)
 	logo_path = image_path.replace('images/logos/','')
-	team_id = random_id_text(league_inf['sport_name'] + league_inf['league_name'] + team_name)
-	instance_id = random_id()
+	# team_id = random_id_text(league_inf['sport_name'] + league_inf['league_name'] + team_name)
+	team_id = generate_uuid()
+	instance_id = generate_uuid()
 	meta_dict = str({'statistics':team_info['statistics'], 'last_results':team_info['last_results']})
 	team_info = {"team_id":team_id,"team_position":team_info['position'], "team_country":team_country,"team_desc":'', 'team_logo':logo_path,\
 			 'team_name': team_name,'sport_id': league_inf['sport_id'], 'league_id':league_inf['league_id'], 'season_id':league_inf['season_id'],\
