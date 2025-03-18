@@ -50,14 +50,14 @@ def main():
 	if create_leagues_flag:
 		# create_leagues(driver, ["BOXING"])
 		# create_leagues(driver, ["MOTOR SPORT"])
-		create_leagues(["FOOTBALL", "BASKETBALL","BASEBALL", "AM. FOOTBALL", "HOCKEY", "TENNIS","GOLF", "BOXING",'FORMULA 1'])
+		create_leagues(driver, ["FOOTBALL", "BASKETBALL","BASEBALL", "AM. FOOTBALL", "HOCKEY", "TENNIS","GOLF", "BOXING",'FORMULA 1'])
 
 	if teams_creation_flag:
 		teams_creation(driver, ["FOOTBALL", "BASKETBALL","BASEBALL", "AM. FOOTBALL", "HOCKEY"])
 
 	if results_extraction_flag:
-		results_fixtures_extraction(driver, ["FORMULA 1"], name_section = 'results')		
-		# results_fixtures_extraction(driver, ["FOOTBALL", "BASKETBALL","BASEBALL", "AM. FOOTBALL", "HOCKEY"], name_section = 'results')
+		# results_fixtures_extraction(driver, ["FORMULA 1"], name_section = 'results')		
+		results_fixtures_extraction(driver, ["FOOTBALL", "BASKETBALL","BASEBALL", "AM. FOOTBALL", "HOCKEY"], name_section = 'results')
 
 	if fixture_extraction_flag:
 		#"TENNIS","GOLF"
