@@ -295,25 +295,27 @@ def random_name_logos(league_team, folder = 'news_images', termination = '.jpg')
     return os.path.join(folder,(league_team) + file_name + termination)
 
 def random_id():
-    rand_id = ''.join(random.choice(string.ascii_lowercase) for i in range(4))
-    rand_id = rand_id + str(random.choice([0, 9]))
-    digits = ''.join([str(random.randint(0, 9)) for i in range(4)])
-    return rand_id+digits
+    # rand_id = ''.join(random.choice(string.ascii_lowercase) for i in range(4))
+    # rand_id = rand_id + str(random.choice([0, 9]))
+    # digits = ''.join([str(random.randint(0, 9)) for i in range(4)])
+    # return rand_id+digits
+    return str(uuid.uuid4())
 
 def generate_uuid():    
     return str(uuid.uuid4())
 
 def random_id_text(textinput):
-    textinput = textinput.replace(' ', '')
-    unique_code = 0
-    for char in textinput:
-        unique_code = unique_code*6 + ord(char)
-    unique_code = str(unique_code)    
-    if len(unique_code) < 10:        
-        unique_code = (10 - len(unique_code))*'0' + unique_code        
-    else:
-        unique_code = unique_code[-10:]
-    return unique_code
+    # textinput = textinput.replace(' ', '')
+    # unique_code = 0
+    # for char in textinput:
+    #     unique_code = unique_code*6 + ord(char)
+    # unique_code = str(unique_code)    
+    # if len(unique_code) < 10:        
+    #     unique_code = (10 - len(unique_code))*'0' + unique_code        
+    # else:
+    #     unique_code = unique_code[-10:]
+    # return unique_code
+    return str(uuid.uuid4())
 
 def random_id_short():
     rand_id = ''.join(random.choice(string.ascii_lowercase) for i in range(4))
