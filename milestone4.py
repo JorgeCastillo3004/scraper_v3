@@ -65,7 +65,7 @@ def get_result(row, country_id, section = 'results'):
     html_block = row.get_attribute('outerHTML')
     link_id = re.findall(r'id="[a-z]_\d_(.+?)\"', html_block)[0]
     url_details = "https://www.flashscore.com/match/{}/#/match-summary/match-summary".format(link_id)
-    match_id = random_id()
+    match_id = generate_uuid()
     result_dict = {'match_id':match_id,'match_date':match_date,'start_time':'', 'end_time':'',\
                     'name':home_participant + '-' + away_participant,'home':home_participant,'visitor':away_participant,\
                     'home_result':home_result,  'visitor_result':away_result, 'link_details':url_details,'place':'',
@@ -296,7 +296,8 @@ def get_match_info(driver, event_info):
     # GET MATCH DATE COMPLETE.
     event_info['match_date'] = driver.find_element(By.CLASS_NAME, 'duelParticipant__startTime').text
 
-    for element in match_info_elements:        
+    for element in match_info_elements:
+        print(element.text)
         field_name = element.find_element(By.CLASS_NAME, 'matchInfoItem__name').text.replace(':','')
         field_value = element.find_element(By.CLASS_NAME, 'matchInfoItem__value').text
         event_info[field_name] = field_value
@@ -376,7 +377,7 @@ def save_participants_info(driver, player_links, sport_id, league_id, season_id,
         player_dict['team_logo'] = player_dict['player_photo']
         player_dict['team_name'] = player_dict['player_name']
         player_dict['sport_id'] = sport_id
-        player_dict['instance_id'] = random_id()
+        player_dict['instance_id'] = generate_uuid()
         player_dict['player_meta'] = ''
         player_dict['team_meta'] = ''
         player_dict['team_position'] = 0
@@ -409,7 +410,7 @@ def save_participants_info(driver, player_links, sport_id, league_id, season_id,
             player_dict['team_desc'] = ''
             player_dict['team_logo'] = player_dict['player_photo']          
             player_dict['sport_id'] = sport_id
-            player_dict['instance_id'] = random_id()
+            player_dict['instance_id'] = generate_uuid()
             player_dict['player_meta'] = ''
             player_dict['team_meta'] = ''
             player_dict['team_position'] = 0
@@ -423,7 +424,7 @@ def save_participants_info(driver, player_links, sport_id, league_id, season_id,
                 save_player_info(player_dict) # player                  
 
         team_name = '-' .join(team_name)
-        player_dict['team_id'] = random_id()
+        player_dict['team_id'] = generate_uuid()
         dict_players_ready[team_name] = {'team_id':player_dict['team_id']}
         if not team_name in list((dict_players_ready.keys() ) ):
             save_team_info(player_dict)                 # team
@@ -488,7 +489,7 @@ def get_complete_match_info(driver, country_league, sport_name, league_id, seaso
                     print(" STADIUM READY ")
                 except:
                     print("  STADIUM CREATED  ")
-                    event_info['stadium_id'] = random_id()                  
+                    event_info['stadium_id'] = generate_uuid()                  
 
                     if 'CAPACITY' in list(event_info.keys()):
                         capacity = int(''.join(event_info['CAPACITY'].split()))
@@ -509,12 +510,12 @@ def get_complete_match_info(driver, country_league, sport_name, league_id, seaso
                     # print(dict_stadium)                   
                     save_stadium(dict_stadium)
                 #################################################################
-                match_detail_id = random_id()
-                score_id = random_id()
+                match_detail_id = generate_uuid()
+                score_id = generate_uuid()
                 dict_home = {'match_detail_id':match_detail_id, 'home':True, 'visitor':False, 'match_id':event_info['match_id'],\
                             'team_id':team_id_home, 'points':event_info['home_result'], 'score_id':score_id}
-                match_detail_id = random_id()
-                score_id = random_id()
+                match_detail_id = generate_uuid()
+                score_id = generate_uuid()
                 dict_visitor = {'match_detail_id':match_detail_id, 'home':False, 'visitor':True, 'match_id':event_info['match_id'],\
                             'team_id':team_id_visitor, 'points':event_info['visitor_result'], 'score_id':score_id}
 
@@ -540,7 +541,7 @@ def get_complete_match_info(driver, country_league, sport_name, league_id, seaso
                         dict_home['points'] = -1
                         dict_visitor['points'] = -1
                     save_score_info(dict_home)
-                    save_score_info(dict_visitor)                   
+                    save_score_info(dict_visitor)
             os.remove(file_path)            
             # print("#"*80, '\n'*2)
             # list_rounds_ready.append(round_file.split('/')[-1])
@@ -570,7 +571,7 @@ def save_team_player_single(driver, player_link , league_info):
     player_dict['team_desc'] = ''
     player_dict['team_logo'] = player_dict['player_photo']          
     player_dict['sport_id'] = league_info['sport_id']
-    player_dict['instance_id'] = random_id()
+    player_dict['instance_id'] = generate_uuid()
     player_dict['player_meta'] = ''
     player_dict['team_meta'] = ''
     player_dict['team_position'] = 0
@@ -614,7 +615,7 @@ def save_team_player_doubles(driver, player_links , league_info):
         player_dict['team_desc'] = ''
         player_dict['team_logo'] = player_dict['player_photo']          
         player_dict['sport_id'] = league_info['sport_id']
-        player_dict['instance_id'] = random_id()
+        player_dict['instance_id'] = generate_uuid()
         player_dict['player_meta'] = ''
         player_dict['team_meta'] = ''
         player_dict['team_position'] = 0
@@ -628,7 +629,7 @@ def save_team_player_doubles(driver, player_links , league_info):
             print('Player created previously')          
     
     # TEAM CREATION
-    player_dict['team_id'] = random_id()
+    player_dict['team_id'] = generate_uuid()
     player_dict['team_name'] = '-'.join(team_members)
     
     team_id_list = check_team_duplicates(player_dict['team_name'], player_dict['sport_id'])
@@ -717,7 +718,7 @@ def get_complete_match_info_tennis(driver, league_info, section='results'):
             # team_id_away = dict_country_league_season[away_participant]
 
             # LOAD PLACE OR STADIUM INFO AND SAVE IN DB.            
-            event_info['stadium_id'] = random_id()
+            event_info['stadium_id'] = generate_uuid()
             if 'CAPACITY' in list(event_info.keys()):
                 capacity = int(''.join(event_info['CAPACITY'].split()))
             else:
@@ -743,12 +744,12 @@ def get_complete_match_info_tennis(driver, league_info, section='results'):
                 event_info['stadium_id'] = stadium_results[0]
             #################################################################
             print("#"*80, '\n'*2)
-            match_detail_id = random_id()
-            score_id = random_id()
+            match_detail_id = generate_uuid()
+            score_id = generate_uuid()
             dict_home = {'match_detail_id':match_detail_id, 'home':True, 'visitor':False, 'match_id':event_info['match_id'],\
                         'team_id':team_id_home, 'points':event_info['home_result'], 'score_id':score_id}
-            match_detail_id = random_id()
-            score_id = random_id()
+            match_detail_id = generate_uuid()
+            score_id = generate_uuid()
             dict_visitor = {'match_detail_id':match_detail_id, 'home':False, 'visitor':True, 'match_id':event_info['match_id'],\
                         'team_id':team_id_away, 'points':event_info['visitor_result'], 'score_id':score_id}
             
@@ -977,13 +978,13 @@ def results_fixtures_extraction(driver, list_sports, name_section = 'results'):
 
                                 # SAVE PLAYER AND TEAM INFO IN DATA BASE
                                 team_id = save_team_player_single(driver, participant_info['player_url'] , league_info)
-                                match_detail_id = random_id()
-                                score_id = random_id()
+                                match_detail_id = generate_uuid()
+                                score_id = generate_uuid()
                                 dict_home = {'match_detail_id':match_detail_id, 'home':False, 'visitor':False, 'match_id':event_info['match_id'],\
                                             'team_id':team_id, 'points':participant_info['statistic']['Par'], 'score_id':score_id}
 
                                 # LOAD PLACE OR STADIUM INFO AND SAVE IN DB.            
-                                event_info['stadium_id'] = random_id()
+                                event_info['stadium_id'] = generate_uuid()
                                 if 'CAPACITY' in list(event_info.keys()):
                                     capacity = int(''.join(event_info['CAPACITY'].split()))
                                 else:
@@ -1030,10 +1031,10 @@ def build_detail_score_dict(racer, dict_match):
     name = name.find_element(By.XPATH, './div/div/a').text
     position = position.text.replace('.','').replace(' ','')
     points.text
-    team_id = random_id_text("MOTOR SPORT" + team.text+ name)
-    dict_detail_score = {'match_detail_id': random_id() , 'home': False, 'visitor': False,
+    team_id = generate_uuid_text("MOTOR SPORT" + team.text+ name)
+    dict_detail_score = {'match_detail_id': generate_uuid() , 'home': False, 'visitor': False,
                              'match_id':dict_match['match_id'],'team_id':'',
-                         'points':points, 'score_id':random_id()
+                         'points':points, 'score_id':generate_uuid()
                             }
     return dict_detail_score
 
@@ -1068,7 +1069,7 @@ def build_match_dict(driver, block_match, season_year, category):
     
     
     # BUILD STADIUM DICT = AUTODROME_DICT
-    autodrome_dict = {"stadium_id": random_id_text(place),
+    autodrome_dict = {"stadium_id": generate_uuid_text(place),
                         "capacity": 0,
                         "country": match_country,
                         "desc_i18n": descr,
@@ -1077,12 +1078,12 @@ def build_match_dict(driver, block_match, season_year, category):
                         }
     
     # BUILD MATCH DICT
-    dict_match = {'match_id':random_id_text(grand_prix_title + season_year), 'match_country':match_country, 'end_time':start_time,
+    dict_match = {'match_id':generate_uuid_text(grand_prix_title + season_year), 'match_country':match_country, 'end_time':start_time,
                   'match_date':match_date, 'name':grand_prix_title,'start_time':start_time, 
                   'place':place, 'rounds':'',
-                  'season_id':random_id_text(category + season_year),
+                  'season_id':generate_uuid_text(category + season_year),
                   'status':status, 'statistic':'',
-                  'league_id':random_id_text("MOTOR SPORT" + category), 'stadium_id': autodrome_dict['stadium_id']
+                  'league_id':generate_uuid_text("MOTOR SPORT" + category), 'stadium_id': autodrome_dict['stadium_id']
                  }
     return autodrome_dict, dict_match
 
@@ -1130,9 +1131,9 @@ def create_events_f1(driver, category = 'FORMULA 1', season_year = '2024'):
 
     #             print(f"TEAM: {dict_result['#']} {dict_result['TEAM']} driver: {dict_result['DRIVER']}")
                 print("team_id: ", team_id)
-                dict_match_detail = {'match_detail_id':random_id(),'home':False, 'visitor':False,
+                dict_match_detail = {'match_detail_id':generate_uuid(),'home':False, 'visitor':False,
                                     'match_id':dict_match['match_id'], 'team_id':team_id,
-                                    'score_id':random_id(), 'points':f1_puntuation(dict_result['#'])}
+                                    'score_id':generate_uuid(), 'points':f1_puntuation(dict_result['#'])}
 
                 # INPUT VAR: team_id, match_id, dict_match['match_id']
                 save_details_math_info(dict_match_detail)
@@ -1172,7 +1173,7 @@ def get_result_boxig(driver):
         status = 'R'
     except:
         away_participant = driver.find_element(By.CLASS_NAME, 'duelParticipant__away').text
-    match_id = random_id()
+    match_id = generate_uuid()
     result_dict = {'match_id':match_id,'name':home_participant + '-' + away_participant,\
                    'home':home_participant,'visitor':away_participant,\
                    'home_result':home_result,  'visitor_result':away_result,\
@@ -1224,12 +1225,12 @@ def extract_info_boxing(driver, league_info):
         team_id_away =  save_team_player_single(driver, away_links[0], league_info)# Pending pass sport_id
 
         # save match score entity
-        match_detail_id = random_id()
-        score_id = random_id()
+        match_detail_id = generate_uuid()
+        score_id = generate_uuid()
         dict_home = {'match_detail_id':match_detail_id, 'home':False, 'visitor':False, 'match_id':event_info['match_id'],\
                     'team_id':team_id_home, 'points':event_info['home_result'], 'score_id':score_id}        
-        match_detail_id = random_id()
-        score_id = random_id()
+        match_detail_id = generate_uuid()
+        score_id = generate_uuid()
         dict_visitor = {'match_detail_id':match_detail_id, 'home':False, 'visitor':False, 'match_id':event_info['match_id'],\
                     'team_id':team_id_away, 'points':event_info['visitor_result'], 'score_id':score_id}
         
@@ -1299,7 +1300,7 @@ def get_tournament(driver, league_info, event_block):
         dict_match['match_date'], dict_match['start_time'] = get_time_date_format(date_time, section ='results')
         dict_match['status'] = 'P'    
     
-    dict_match['match_id'] = random_id()
+    dict_match['match_id'] = generate_uuid()
     dict_match['match_country'] = ''
     
     dict_match['end_time'] = dict_match['start_time']
