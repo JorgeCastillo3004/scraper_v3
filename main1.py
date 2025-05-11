@@ -23,7 +23,6 @@ from milestone1 import *
 from milestone2 import *
 from milestone3 import *
 from milestone4 import *
-from milestone5 import *
 from milestone6 import *
 
 
