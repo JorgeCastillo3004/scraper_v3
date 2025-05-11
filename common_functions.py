@@ -12,6 +12,7 @@ from selenium.webdriver.common.by import By
 
 from datetime import date, timedelta, datetime
 from selenium import webdriver
+import traceback
 import random
 import string
 import requests
@@ -120,6 +121,77 @@ def load_check_point(filename):
         json_object = {}
     return json_object
 
+def build_dict_sports_cp(list_sports, global_check_point, milestone = 'M1'):
+    """Build a sport dictionary to store checkpoints.
+        The main key is the milestone (e.g., M1, M2, ...),
+        the second key is the sport name, and the value is the league name.
+        This will be used later to enable extraction."""
+    try:
+        list_sports_cp = {}
+        enable_shop_list = True
+        for sport_name,league in global_check_point[milestone].items():
+            if enable_shop_list:
+                list_sports = list_sports[list_sports.index(sport_name):]
+                enable_shop_list = False
+            list_sports_cp[sport_name] = league
+            list_sports.remove(sport_name)
+        for sport in list_sports:
+            list_sports_cp[sport] = ''            
+
+    except:
+        list_sports_cp = {}
+        for sport in list_sports:
+            list_sports_cp[sport] = ''
+    return list_sports_cp
+
+def complete_league_info(league_info, sport_name, league_name, dict_sport_id):    
+    # save in the same dict league_name, sport_name
+    league_info['league_name'] = league_name
+    league_info['sport_name'] = sport_name
+    league_info['sport_id'] = dict_sport_id[sport_name]
+    country_id = league_info['country_id']    
+    return country_id
+
+def log_selenium_error(driver, error, details, error_file = "check_points/selenium_errors.json"):
+    """
+    Logs Selenium errors into a JSON file, maintaining a sequential error numbering.
+    
+    :param driver: Selenium WebDriver instance.
+    :param error: Exception object containing the error message.
+    """    
+    errors = {}
+    
+    # Load existing errors if the file exists
+    if os.path.exists(error_file):
+        with open(error_file, "r", encoding="utf-8") as f:
+            try:
+                errors = json.load(f)
+            except json.JSONDecodeError:
+                errors = {}
+    
+    # Get the next error ID
+    error_id = str(len(errors) + 1)
+    
+    # Capture the current URL
+    try:
+        current_url = driver.current_url
+    except:
+        current_url = None
+    
+    # Store the error details in the dictionary
+    error = traceback.format_exc()
+    errors[error_id] = {
+        "url": current_url,
+        "error": str(error),
+        "details": details
+    }
+    
+    # Save the updated error log to the JSON file
+    with open(error_file, "w", encoding="utf-8") as f:
+        json.dump(errors, f, indent=4, ensure_ascii=False)
+    
+    print(f"Error logged with ID: {error_id}")
+
 def check_previous_execution(file_path = 'check_points/scraper_control.json'):
     if os.path.isfile(file_path):
         dict_scraper_control = load_json(file_path)
@@ -179,38 +251,56 @@ def launch_navigator(url, headless= True, enable_profile=False):
     driver.execute_script("document.body.style.zoom='50%'")    
     return driver
 
-def login(driver, email_= "jignacio@jweglobal.com", password_ = "Caracas5050@"):
-    wait = WebDriverWait(driver, 10)
+def login(driver, email_= "jignacio@jweglobal.com", password_ = "Caracas5050@"):   
+    folder_path = "check_points/screenshots/"
+    os.makedirs(folder_path, exist_ok=True)
 
-    try:
-        # Accept cookies
-        accept_button = wait.until(EC.element_to_be_clickable((By.ID, "onetrust-accept-btn-handler")))
-        accept_button.click()
-    except:
-        print("Continue...")
+    # Define the path for saving the screenshot
+    screenshot_path = os.path.join(folder_path, "login_issue.png")
     # Click on login
-    login_button = wait.until(EC.element_to_be_clickable((By.CLASS_NAME, 'header__icon.header__icon--user')))
-    # login_button = driver.find_element(By.CLASS_NAME, 'header__icon.header__icon--user')
-    login_button.click()
-    # Select login mode
-    continue_email = wait.until(EC.element_to_be_clickable((By.CLASS_NAME, "ui-button.ui-formButton.social__button.email")))
-    continue_email.click()
+    count_login = 0
+    max_tries = 8
+    wait = WebDriverWait(driver, 15)
+    while count_login < max_tries:
+        print(f"count login {count_login}")
+        try:
+            try:
+                # Accept cookies
+                wait = WebDriverWait(driver, 5)
+                accept_button = wait.until(EC.element_to_be_clickable((By.ID, "onetrust-accept-btn-handler")))
+                accept_button.click()
+            except:
+                print("Accept cookies button don't found , continue")
+            login_button = wait.until(EC.element_to_be_clickable((By.CLASS_NAME, 'header__icon.header__icon--user')))
+            # login_button = driver.find_element(By.CLASS_NAME, 'header__icon.header__icon--user')
+            login_button.click()
+            # Select login mode
+            continue_email = wait.until(EC.element_to_be_clickable((By.CLASS_NAME, "ui-button.ui-formButton.social__button.email")))
+            continue_email.click()
 
-    email = driver.find_element(By.ID,'email')
-    email.clear()
-    email = wait.until(EC.visibility_of_element_located((By.ID,'email')))
-    email.send_keys(email_)
+            email = driver.find_element(By.ID,'email')
+            email.clear()
+            email = wait.until(EC.visibility_of_element_located((By.ID,'email')))
+            email.send_keys(email_)
 
-    password_element = driver.find_element(By.ID,'passwd')
-    password_element.clear()
-    password_element.send_keys(password_)
-    xpath_expression = '//button[contains(., "Log In")]'
-    logig = driver.find_element(By.XPATH, xpath_expression)
-    logig.click()
-    time.sleep(6)
-    print("Login...", '\n')
-    driver.execute_script("document.body.style.zoom='50%'")
-    webdriver.ActionChains(driver).send_keys(Keys.ESCAPE).perform()
+            password_element = driver.find_element(By.ID,'passwd')
+            password_element.clear()
+            password_element.send_keys(password_)
+            xpath_expression = '//button[contains(., "Log In")]'
+            logig = driver.find_element(By.XPATH, xpath_expression)
+            logig.click()
+            time.sleep(6)            
+            driver.execute_script("document.body.style.zoom='50%'")
+            webdriver.ActionChains(driver).send_keys(Keys.ESCAPE).perform()
+            count_login = max_tries + 1
+            print("Login completed ", '\n')
+        except:
+            webdriver.ActionChains(driver).send_keys(Keys.ESCAPE).perform()
+            count_login +=1
+            # Take and save the screenshot
+            driver.save_screenshot(screenshot_path)
+            print("Max tries in login reached \n")  if count_login >= max_tries else None
+            stop_validate() if count_login >= max_tries else None
 
 def wait_update_page(driver, url, class_name):
 
@@ -454,4 +544,15 @@ def f1_puntuation(posicion_str):
     else:
         return 0
 
+def enable_extraction(dict_check_point, milestone, field, current_point):
+    """Return True if current input math with checkpoint el False """
+    print(f"Current point {field} {current_point}")
+    try:
+        if dict_check_point[milestone][field] == current_point:
+            return True
+        else:
+            return False
+    except:
+        return True
+    
 int_folders()

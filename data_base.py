@@ -91,8 +91,7 @@ def insert_country(country_name):
         return country_id
     except:
         con.rollback()
-        
-
+      
 def insert_countries_to_db(countries):
     try:
         cur = con.cursor()  # Crear cursor fuera del bucle para eficiencia
@@ -119,10 +118,10 @@ def insert_countries_to_db(countries):
                            VALUES (%(country_id)s, %(country_name)s, %(country_name_i18n)s, %(country_logo)s)"""
                 cur.execute(query, dict_country)
                 con.commit()
-                print(f"✅ País '{country}' insertado correctamente.")
+                # print(f"✅ País '{country}' insertado correctamente.")
 
     except Exception as e:
-        print(f"❌ Error: {e}")
+        # print(f"❌ Error: {e}")
         con.rollback()    
 
 def get_country_id(country_name):
@@ -200,11 +199,16 @@ def save_league_team_entity(dict_team):
     con.commit()
 
 def save_player_info(dict_team):    
-    query = "INSERT INTO player VALUES(%(player_id)s, %(player_country)s, %(player_dob)s,\
-     %(player_name)s, %(player_photo)s, %(player_position)s)"
-    cur = con.cursor()
-    cur.execute(query, dict_team)
-    con.commit()
+    print("save_player info")    
+    try:
+        query = "INSERT INTO player VALUES(%(player_id)s, %(country_id)s, %(player_dob)s,\
+        %(player_name)s, %(player_photo)s, %(player_position)s)"
+        cur = con.cursor()
+        cur.execute(query, dict_team)
+        con.commit()
+    except Exception as error:
+        print(error)        
+        con.rollback()
 
 def save_team_players_entity(player_dict):
     query = "INSERT INTO team_players_entity VALUES(%(player_meta)s, %(season_id)s, %(team_id)s,\
@@ -265,6 +269,15 @@ def get_dict_teams(sport_id = 'FOOTBALL'):
     return dict_results
 
 def get_dict_league_ready(sport_id = 'TENNIS'):
+    #####################################################################
+    #		GET DICT WITH LEAGUES SAVED IN DATA_BASE 				  	#
+    #		'{ sport_id: 												#
+    #					team_country: 									#
+    #						league_country 								#
+    #								team_name: team_id}   				#
+    #																  	#
+    #				get_dict_league_ready 								#
+    #####################################################################
     query = """
         SELECT team.sport_id, team.country_id, league.country_id, team.team_name, team.team_id
         FROM team
@@ -283,25 +296,23 @@ def get_dict_league_ready(sport_id = 'TENNIS'):
     return dict_results
 
 ######################################## FUNCTIONS RELATED TO MATCHS ########################################
-def save_math_info(dict_match):
-    dict_match['rounds'] = ' '.join(dict_match['rounds'].split())
-
-    print("dict_match: ", dict_match['statistic'])
-    table_dict = {
-    "match_id": 255,
-    "match_country": 80,
-    "end_time": 1,  # No es una cadena de caracteres
-    "match_date": 1,  # No es una cadena de caracteres
-    "name": 70,
-    "place": 128,
-    "start_time": 1,  # No es una cadena de caracteres
-    "league_id": 40,
-    "stadium_id": 255,
-    "tournament_id": 255,
-    "rounds": 40,
-    "season_id": 40,
-    "status": 40,
-    "statistic": 1600}
+def save_math_info(dict_match):    
+    # print("dict_match: ", dict_match['statistic'])
+    # table_dict = {
+    # "match_id": 255,
+    # "match_country": 80,
+    # "end_time": 1,  # No es una cadena de caracteres
+    # "match_date": 1,  # No es una cadena de caracteres
+    # "name": 70,
+    # "place": 128,
+    # "start_time": 1,  # No es una cadena de caracteres
+    # "league_id": 40,
+    # "stadium_id": 255,
+    # "tournament_id": 255,
+    # "rounds": 40,
+    # "season_id": 40,
+    # "status": 40,
+    # "statistic": 1600}
 
     # for key, value in dict_match.items():
     #     try:
@@ -312,7 +323,8 @@ def save_math_info(dict_match):
     query = "INSERT INTO match VALUES(%(match_id)s, %(country_id)s, %(end_time)s,\
      %(match_date)s, %(name)s, %(place)s, %(start_time)s, %(league_id)s, \
      %(stadium_id)s, %(tournament_id)s,%(rounds)s, %(season_id)s, \
-         %(statistic)s, %(status)s)"
+         %(statistic)s, %(status)s, %(sport_id)s )"
+    print(query)
     cur = con.cursor()
     cur.execute(query, dict_match)
     con.commit()
@@ -459,6 +471,16 @@ def check_match_duplicate(league_id, match_date, match_name):
     results = [row[0] for row in cur.fetchall()]
     return results
 
+def check_match_duplicate2(league_id, match_name):
+    query = """SELECT MATCH_ID FROM MATCH WHERE LEAGUE_ID ='{}'
+    AND MATCH_DATE = CURRENT_DATE 
+    AND NAME='{}';""".format(league_id, match_name)
+    print(query)
+    cur = con.cursor()
+    cur.execute(query)
+    results = [row[0] for row in cur.fetchall()]
+    return results
+
 def get_stadium_id(place_name):
     query = """SELECT STADIUM_ID FROM STADIUM WHERE NAME ='{}';""".format(place_name)   
     cur = con.cursor()
@@ -489,13 +511,36 @@ def update_match_status(params):
 def get_match_by_day():
     # Query to retrieve pending matches for updating.
     query = """
-        SELECT sport.name, league.league_name, league.league_country,\
-        match.match_date, match.start_time, match.name, match.match_id \
+        SELECT sport.name, league.league_name, league.country_id,
+            match.match_date, match.start_time, match.name, match.match_id
         FROM MATCH 
         JOIN LEAGUE ON MATCH.LEAGUE_ID = LEAGUE.LEAGUE_ID
         JOIN SPORT ON SPORT.SPORT_ID = LEAGUE.SPORT_ID
-        WHERE MATCH.MATCH_DATE = CURRENT_DATE       
-        """
+        WHERE MATCH.MATCH_DATE BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '1 day'
+    """
+    # AND MATCH.STATUS = 'P' 
+    cur = con.cursor()
+    cur.execute(query)    
+    return cur.fetchall()
+
+def get_match_by_day_internal(delta, interval = 1):
+    # Query to retrieve pending matches for updating.
+    query = f"""
+        SELECT 
+            sport.name AS sport_name, 
+            league.league_name, 
+            league.country_id,
+            match.match_date, 
+            match.start_time, 
+            match.name AS match_name, 
+            match.match_id
+        FROM match
+        JOIN league ON match.league_id = league.league_id
+        JOIN sport ON sport.sport_id = league.sport_id
+        WHERE 
+            (match.match_date + match.start_time) 
+            BETWEEN (NOW() + INTERVAL '{str(delta-1)} hour') AND (NOW() + INTERVAL '{str(delta + interval)} hour')
+    """    
     # AND MATCH.STATUS = 'P' 
     cur = con.cursor()
     cur.execute(query)    
@@ -533,5 +578,212 @@ def get_match_update():
     cur = con.cursor()
     cur.execute(query)    
     return cur.fetchall()
+
+def get_team_duplicates():
+    query = """
+    SELECT team_id, team_name, country_id, sport_id
+    FROM team
+    WHERE (team_name, country_id, sport_id) IN (
+        SELECT team_name, country_id, sport_id
+        FROM team
+        GROUP BY team_name, country_id, sport_id
+        HAVING COUNT(*) > 1
+    )
+    ORDER BY team_name, country_id; 
+        """
+    cur = con.cursor()
+    cur.execute(query)    
+    return cur.fetchall()
+
+def delete_team(team_id):
+    """
+    Deletes records from score_entity table based on match_detail_id.
+
+    :param match_detail_id: ID used to filter rows to delete.
+    :param con: psycopg2 database conection object.
+    """
+    try:
+        with con.cursor() as cur:
+            query = f"DELETE FROM team WHERE team_id = '{team_id}';"            
+            cur = con.cursor()
+            cur.execute(query)
+            con.commit()
+            
+    except Exception as e:
+        con.rollback()
+        print(f"Error deleting team record: {e}")
+
+def delete_league_team(team_id):
+    """
+    Deletes records from score_entity table based on match_detail_id.
+
+    :param match_detail_id: ID used to filter rows to delete.
+    :param con: psycopg2 database conection object.
+    """
+    try:
+        with con.cursor() as cur:
+            query = f"DELETE FROM league_team WHERE team_id = '{team_id}';"            
+            cur = con.cursor()
+            cur.execute(query)
+            con.commit()
+            
+    except Exception as e:
+        con.rollback()
+        print(f"Error deleting league_team record: {e}")
+
+def get_league_name_country(team_id):
+    query = f"""
+            SELECT s.name, ct.country_name, l.league_name
+            FROM league_team lt
+            JOIN league l ON lt.league_id = l.league_id
+            JOIN country ct ON l.country_id = ct.country_id
+            JOIN sport s ON l.sport_id = s.sport_id
+            WHERE lt.team_id = '{team_id}';
+
+            """
+    cur = con.cursor()
+    cur.execute(query)    
+    return cur.fetchone()
+
+def get_list_match_id(team_id):
+    query = f"""
+            SELECT match_id
+            FROM match_detail            
+            WHERE team_id = '{team_id}';
+            """    
+    cur = con.cursor()
+    cur.execute(query)    
+    return cur.fetchall()
+
+def get_match_details_ids(match_id):
+    query = f"""
+            SELECT md.match_detail_id
+            FROM match_detail md            
+            WHERE md.match_id = '{match_id}';
+            """    
+    cur = con.cursor()
+    cur.execute(query)    
+    return cur.fetchall()
+
+def delete_score_entity(match_detail_id):
+    """
+    Deletes records from score_entity table based on match_detail_id.
+
+    :param match_detail_id: ID used to filter rows to delete.
+    :param con: psycopg2 database conection object.
+    """
+    try:
+        with con.cursor() as cur:
+            query = f"DELETE FROM score_entity WHERE match_detail_id ='{match_detail_id}';"            
+            cur = con.cursor()
+            cur.execute(query)
+            con.commit()            
+    except Exception as e:
+        con.rollback()
+        print(f"Error deleting records: {e}")
+
+def delete_match_detail(match_detail_id):
+    """
+    Deletes records from score_entity table based on match_detail_id.
+
+    :param match_detail_id: ID used to filter rows to delete.
+    :param con: psycopg2 database conection object.
+    """
+    try:
+        with con.cursor() as cur:
+            query = f"DELETE FROM match_detail WHERE match_detail_id = '{match_detail_id}';"            
+            cur = con.cursor()
+            cur.execute(query)
+            con.commit()            
+            
+    except Exception as e:
+        con.rollback()
+        print(f"Error deleting records: {e}")
+
+def delete_match(match_id):
+    """
+    Deletes records from score_entity table based on match_detail_id.
+
+    :param match_detail_id: ID used to filter rows to delete.
+    :param con: psycopg2 database conection object.
+    """
+    try:
+        with con.cursor() as cur:
+            query = f"DELETE FROM match WHERE match_id = '{match_id}';"            
+            cur = con.cursor()
+            cur.execute(query)
+            con.commit()
+            
+    except Exception as e:
+        con.rollback()
+        print(f"Error deleting records: {e}")
+
+def delete_team_players_entity(team_id):
+    """
+    Deletes records from score_entity table based on match_detail_id.
+
+    :param match_detail_id: ID used to filter rows to delete.
+    :param con: psycopg2 database conection object.
+    """
+    try:
+        with con.cursor() as cur:
+            query = f"DELETE FROM team_players_entity WHERE team_id = '{team_id}';"
+            cur = con.cursor()
+            cur.execute(query)
+            con.commit()
+            
+    except Exception as e:
+        con.rollback()
+        print(f"Error deleting league_team record: {e}")
+
+def delete_player_id(player_id):
+    """
+    Deletes records from score_entity table based on match_detail_id.
+
+    :param match_detail_id: ID used to filter rows to delete.
+    :param con: psycopg2 database conection object.
+    """
+    try:
+        with con.cursor() as cur:
+            query = f"DELETE FROM player WHERE player_id = '{player_id}';"
+            cur = con.cursor()
+            cur.execute(query)
+            con.commit()
+            
+    except Exception as e:
+        con.rollback()
+        print(f"Error deleting player_id record: {e}")
+
+
+def get_player_ids(team_id):
+    query = f"""
+            SELECT player_id
+            FROM team_players_entity
+            WHERE team_id = '{team_id}';
+            """    
+    cur = con.cursor()
+    cur.execute(query)    
+    return cur.fetchall()
+
+
+def delete_team_duplicate(team_id):
+
+    match_ids = get_list_match_id(team_id)
+    
+    for match_id in match_ids:
+    
+        list_details_id = get_match_details_ids(match_id[0])
+        for match_detail_id in list_details_id:                
+            print(f"delete current match_detail_id: {match_detail_id[0]}")
+            delete_score_entity(match_detail_id[0])
+            delete_match_detail(match_detail_id[0])
+        delete_match(match_id[0])
+    delete_league_team(team_id)
+    delete_team(team_id)
+    # delete player, team_players_entity
+    list_players_id = get_player_ids(team_id)
+    for player_id in list_players_id:
+        delete_player_id(player_id)
+    delete_team_players_entity(team_id)
 
 con = getdb()
