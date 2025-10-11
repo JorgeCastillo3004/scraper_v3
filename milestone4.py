@@ -289,8 +289,8 @@ def navigate_through_rounds(driver, country_league, country_id,  list_rounds ,se
 
 def get_match_info(driver, event_info):
     # Extract details about matchs
-    match_country = driver.find_element(By.XPATH, '//span[@class="tournamentHeader__country"]').text.split(":")[0]
-    event_info['match_country'] = match_country 
+    # match_country = driver.find_element(By.XPATH, '//span[@class="tournamentHeader__country"]').text.split(":")[0]
+    event_info['match_country'] = ''#match_country 
     match_info_elements = driver.find_elements(By.XPATH, '//div[@class="matchInfoData"]/div')
 
     # GET MATCH DATE COMPLETE.
@@ -1024,7 +1024,6 @@ def results_fixtures_extraction(driver, list_sports, name_section = 'results'):
 
     del global_check_point[sport_name]['M4']
     save_check_point('check_points/global_check_point.json', global_check_point)
-
 
 def build_detail_score_dict(racer, dict_match):
     position, name, team, points = racer.find_elements(By.XPATH, './div')
