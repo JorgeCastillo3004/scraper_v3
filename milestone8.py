@@ -58,10 +58,10 @@ def build_dict_match(results):
 							,'country_league' : league_country + '_' +league_name}
 	return dict_pending
 
-def update_match_score(match_element, match_id):	
+def update_match_score(match_element, match_id, line_match =''):
 	dict_match_detail_id = get_math_details_ids(match_id) # get match detail from database, two registers home-away
 	
-	line_match = ''
+	
 	for match_detail_id, home_flag in dict_match_detail_id.items():
 		if home_flag:
 			# Update home score
@@ -189,8 +189,8 @@ def update_dict(current_dict, dict_ready, initial_time, delay):
 
 def update_match(match_element, match, sport_name, name, dict_ready):	
 	# update match status							
-	match_status = match_element[0].find_element(By.CLASS_NAME, 'event__stage--block').text
-	print("Match name: ", name, "Status: ", match_status)
+	match_status = match_element[0].find_element(By.CLASS_NAME, 'event__stage--block').text	
+	line_match = f"match: {name} name: {match_status}"
 	if match_status !='Finished':
 		status = 'in progress'
 	elif match_status =='Finished':
@@ -199,7 +199,7 @@ def update_match(match_element, match, sport_name, name, dict_ready):
 		dict_ready[sport_name + "***" + name] = datetime.now()		
 
 	update_match_status({'match_id':match['match_id'], 'status':status})
-	update_match_score(match_element[0], match['match_id'])	
+	update_match_score(match_element[0], match['match_id'], line_match)	
 
 def check_today_match_dict(dict_pending):	
 	print(dict_pending)

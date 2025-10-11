@@ -292,17 +292,24 @@ def get_match_info(driver, event_info):
     # match_country = driver.find_element(By.XPATH, '//span[@class="tournamentHeader__country"]').text.split(":")[0]
     match_country = driver.find_element(By.CLASS_NAME, 'detail__breadcrumbs')
     country = match_country.find_elements(By.TAG_NAME, 'li')[1].text.strip() 
-    event_info['match_country'] = match_country 
-    match_info_elements = driver.find_elements(By.XPATH, '//div[@class="matchInfoData"]/div')
+    event_info['match_country'] = country    
 
     # GET MATCH DATE COMPLETE.
     event_info['match_date'] = driver.find_element(By.CLASS_NAME, 'duelParticipant__startTime').text
+    xpath_expression ='//div[contains(@class, "summaryMatchInformation")]/div'
+    match_details = driver.find_elements(By.XPATH, xpath_expression)
 
-    for element in match_info_elements:
-        print(element.text)
-        field_name = element.find_element(By.CLASS_NAME, 'matchInfoItem__name').text.replace(':','')
-        field_value = element.find_element(By.CLASS_NAME, 'matchInfoItem__value').text
-        event_info[field_name] = field_value
+    for n in range(0, len(match_details)//2+2,2):
+        key_name = match_details[n].text.replace(':', '')
+        value = match_details[n+1].text.replace('\n', '')
+        event_info[' '.join(key_name.split())] = ' '.join(value.split())
+
+    # match_info_elements = driver.find_elements(By.XPATH, '//div[@class="matchInfoData"]/div')
+    # for element in match_info_elements:
+    #     print(element.text)
+    #     field_name = element.find_element(By.CLASS_NAME, 'matchInfoItem__name').text.replace(':','')
+    #     field_value = element.find_element(By.CLASS_NAME, 'matchInfoItem__value').text
+    #     event_info[field_name] = field_value
     return event_info
 
 def wait_load_details(driver, url_details):
@@ -802,21 +809,6 @@ def pending_to_process(dict_country_league_check_point, sport_id, country_league
     else:
         return {}
 
-# def build_check_point(sport_id, country_league):
-#   check_point = {'sport_id':sport_id, 'country_league':country_league}
-#   save_check_point('check_points/check_point_m4.json', check_point)
-
-# def get_check_point(check_point, sport_id, country_league):
-#   print(check_point)
-#   if len(check_point)!= 0:
-#       if check_point['sport_id'] == sport_id and check_point['country_league'] == country_league:
-#           return True
-#       else:
-#           return False
-#   else:
-#       return True
-
-
 def check_enable_flags(sport_name, league_name):
     path_league_info = 'check_points/leagues_season/{}/{}.json'.format(sport_name, league_name)
     #################################################
@@ -843,7 +835,7 @@ def check_enable_flags(sport_name, league_name):
 def results_fixtures_extraction(driver, list_sports, name_section = 'results'): 
     # dict_country_league_check_point = load_check_point('check_points/country_leagues_results_ready.json')
     dict_sport_id = get_dict_sport_id() # GET DICT SPORT FROM DATABASE
-    leagues_info_json = load_check_point('check_points/leagues_info.json')    
+    leagues_info_json = load_check_point('check_points/leagues_info.json')
     global_check_point = load_check_point('check_points/global_check_point.json')
     print("DICT SPORT ID: ", dict_sport_id)
     #############################################################

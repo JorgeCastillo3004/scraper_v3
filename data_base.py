@@ -786,4 +786,18 @@ def delete_team_duplicate(team_id):
         delete_player_id(player_id)
     delete_team_players_entity(team_id)
 
+def get_match_not_updated():
+    # Query to retrieve pending matches for updating.
+    query = """
+        SELECT sp.name, c.country_name, l.league_name, m.match_date, m.match_id, m.status, m.name
+        FROM match m
+        JOIN league l ON m.league_id = l.league_id
+        JOIN sport sp ON l.sport_id = sp.sport_id
+        JOIN country c ON l.country_id = c.country_id
+        WHERE m.status = 'schedule' and m.match_date <=current_date;
+    """    
+    cur = con.cursor()
+    cur.execute(query)    
+    return cur.fetchall()
+
 con = getdb()

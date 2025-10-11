@@ -72,7 +72,7 @@ def extract_match_info(driver, row, section = 'results'):
     except:        
         fecha_hora = datetime.now()
         start_time = fecha_hora.time()
-        end_time = start_time
+    end_time = start_time
     try:
         # home_participant = row.find_element(By.CLASS_NAME, 'event__participant.event__participant--home.fontExtraBold').text        
         home_participant = row.find_element(By.XPATH, home_xpath_expression).text
@@ -102,7 +102,9 @@ def extract_match_info(driver, row, section = 'results'):
 
 def get_match_info_v2(driver, event_info):
     # Extract details about matchs
-    match_country = driver.find_element(By.XPATH, '//span[@class="tournamentHeader__country"]').text.split(":")[0]
+    #match_country = driver.find_element(By.XPATH, '//span[@class="tournamentHeader__country"]').text.split(":")[0]
+    match_country = driver.find_element(By.CLASS_NAME, 'detail__breadcrumbs')
+    match_country = match_country.find_elements(By.TAG_NAME, 'li')[1].text.strip() 
     event_info['match_country'] = match_country 
     match_info_elements = driver.find_elements(By.XPATH, '//div[@class="matchInfoData"]/div')
     print("match_info_elements len", len(match_info_elements))
@@ -188,7 +190,7 @@ def complete_dict_match(match_dict, stadium_dict, season_info):
     return match_dict
 
 def extract_matchs_from_schedule():
-    driver = launch_navigator('https://www.flashscore.com', headless = False)
+    driver = launch_navigator('https://www.flashscore.com', headless = True)
     login(driver, email_= "jignacio@jweglobal.com", password_ = "Caracas5050@\n")
     sport_name = 'FOOTBALL'
 
@@ -199,10 +201,10 @@ def extract_matchs_from_schedule():
     leagues_info = load_json('check_points/leagues_info.json')
 
     # LOAD SPORT LINK
-    # wait_update_page(driver, dict_sports_url[sport_name], "container__heading")
+    wait_update_page(driver, dict_sports_url[sport_name], "container__heading")
 
     # GIVE CLICK IN SECTION LIVE
-    # live_games_found = give_click_on_live(driver, sport_name, section = "Schedule")
+    live_games_found = give_click_on_live(driver, sport_name, section = "Schedule")
 
     # LOOP IN LIST OF SPORTS
     match_flag = False
