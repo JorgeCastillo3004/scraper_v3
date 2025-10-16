@@ -454,4 +454,34 @@ def f1_puntuation(posicion_str):
     else:
         return 0
 
+def store_league_info(sport_name, league_name, number_matches, sports_data):
+    """
+    Stores or updates league information under a sport key.
+    
+    Structure:
+    {
+        "Football": {
+            "Premier League": {
+                "number_matches": 120,
+                "date": "2025-10-05",
+                "enable": True
+            }
+        }
+    }
+    """
+    current_date = date.today().isoformat()
+
+    # Initialize the sport key if it doesn't exist
+    if sport_name not in sports_data:
+        sports_data[sport_name] = {}
+
+    # Store or update league information
+    sports_data[sport_name][league_name] = {
+        "number_matches": number_matches,
+        "date": current_date,
+        "enable": True
+    }
+
+    return sports_data
+
 int_folders()

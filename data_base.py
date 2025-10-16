@@ -338,6 +338,7 @@ def save_stadium(dict_match):
     con.commit()
 
 def get_rounds_ready(league_id, season_id):
+    """Check rounds ready saved in DB"""
     query = "SELECT DISTINCT rounds FROM match WHERE league_id = '{}' AND season_id = '{}';".format(league_id, season_id)   
     print("query inside rounds ready: ")
     print(query)
@@ -533,5 +534,25 @@ def get_match_update():
     cur = con.cursor()
     cur.execute(query)    
     return cur.fetchall()
+
+def get_match_by_league_id(league_id):
+    """
+    Returns the total number of matches associated with a given league_id.
+    """
+    query = """
+        SELECT 
+            s.league_id,
+            COUNT(m.match_id) AS total_matches
+        FROM match AS m
+        JOIN season AS s 
+            ON m.season_id = s.season_id
+        WHERE s.league_id = %s
+        GROUP BY s.league_id;
+    """
+    with con.cursor() as cur:
+        cur.execute(query, (league_id,))
+        result = cur.fetchall()
+        return result[0] if result else 0
+
 
 con = getdb()
