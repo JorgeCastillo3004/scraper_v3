@@ -815,7 +815,7 @@ def results_fixtures_extraction(driver, list_sports, name_section = 'results'):
 
     enable_sport = False
     enable_league = False   
-
+    sports_match_data = load_check_point('check_points/leagues_matchs_data.json')
     #############################################################
     #               MAIN LOOP OVER LIST SPORTS                  #
     #############################################################
@@ -838,16 +838,15 @@ def results_fixtures_extraction(driver, list_sports, name_section = 'results'):
                     # save in the same dict league_name, sport_name                    
 
                     complete_info(league_info, league_name, sport_name, dict_sport_id)
-                    country_id = league_info['country_id']
-                    print_section("Section league info, country_id")
-                    print(country_id)
+                    print(f"Check complete info keys: {league_info.keys()}")                    
                     print(league_info)
                     # list_rounds = get_rounds_ready(league_info['league_id'], league_info['season_id'])
                     
-                    match_count = get_match_by_league_id(league_info['league_id'])
-                    sports_match_control = store_league_info(sport_name, league_name, sports_match_control, match_count)
-                    print(f"total match found for league {league_info['league_name']} it was: {sports_match_control}")
-                    stop_validate()
+                    
+                    number_matches = get_match_by_league_id(league_info['league_id'])
+                    sports_match_data = store_league_info(sport_name, league_name, number_matches, sports_match_data)
+                    print(f"total match found for league {league_info['league_name']} it was: {number_matches}")
+                    
                     # if name_section in list(league_info.keys()):
                     #     # LOAD SECTION RESULS OR FIXTURES
                     #     wait_update_page(driver, league_info[name_section], "container__heading")
@@ -857,9 +856,9 @@ def results_fixtures_extraction(driver, list_sports, name_section = 'results'):
                     #     get_complete_match_info(driver, league_name, sport_name, league_info['league_id'],
                     #                             league_info['season_id'], dict_league, section=name_section)
         
-        save_check_point('check_points/global_check_point.json', sports_match_control)
-    del global_check_point[sport_name]['M4']
-    save_check_point('check_points/global_check_point.json', global_check_point)
+                    save_check_point('check_points/leagues_matchs_data.json', sports_match_data)
+                    # stop_validate()
+
 
 def build_detail_score_dict(racer, dict_match):
     position, name, team, points = racer.find_elements(By.XPATH, './div')
