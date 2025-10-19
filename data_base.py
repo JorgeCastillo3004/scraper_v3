@@ -330,7 +330,7 @@ def save_score_info(dict_match):
     cur.execute(query, dict_match)
     con.commit()
 
-def save_stadium(dict_match):
+def save_stadium_in_db(dict_match):
     query = "INSERT INTO stadium VALUES(%(stadium_id)s, %(capacity)s,\
      %(desc_i18n)s, %(name)s, %(photo)s)"
     cur = con.cursor()
@@ -535,24 +535,21 @@ def get_match_update():
     cur.execute(query)    
     return cur.fetchall()
 
-def get_match_by_league_id(league_id):
+def get_match_by_league_id(con, league_id):
     """
-    Returns the total number of matches associated with a given league_id.
+    Returns the total number of matches (int) associated with a given league_id.
     """
     query = """
-        SELECT 
-            s.league_id,
-            COUNT(m.match_id) AS total_matches
+        SELECT COUNT(m.match_id) AS total_matches
         FROM match AS m
-        JOIN season AS s 
-            ON m.season_id = s.season_id
+        JOIN season AS s ON m.season_id = s.season_id
         WHERE s.league_id = %s
         GROUP BY s.league_id;
     """
     with con.cursor() as cur:
         cur.execute(query, (league_id,))
-        result = cur.fetchall()
-        return result[0] if result else 0
+        row = cur.fetchone()  # fetchone() es más eficiente
+        return int(row[0]) if row else 0
 
 
 con = getdb()
