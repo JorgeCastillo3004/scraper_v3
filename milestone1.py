@@ -17,7 +17,7 @@ def get_list_recent_news(driver, max_older_news, last_index, last_date_saved):
 	#	LOCATE THE CONTAINER BLOCK OF FOR EACH NEWS ARTICLE 	#
 	#############################################################
 	webdriver.ActionChains(driver).send_keys(Keys.END).perform()
-	xpath_expression = '//div[@class="fsNewsSection fsNewsSection__mostRecent fsNewsSection__noTopped"]/a'
+	xpath_expression = '//div[contains(@class,"fsNewsSection__mostRecent")]/a'
 	container_news = driver.find_elements(By.XPATH, xpath_expression)
 	dict_upate_news = {}
 	# count_match, count_recent_news, more_recent_news = 0, 0, []
@@ -101,12 +101,12 @@ def get_list_recent_news_v2(driver, sport, max_older_news):
 	print("Case previous list: ", previous_list)
 	wait = WebDriverWait(driver, 10)
 	webdriver.ActionChains(driver).send_keys(Keys.END).perform()
-	xpath_expression = '//div[@class="fsNewsSection fsNewsSection__mostRecent fsNewsSection__noTopped"]/a'
+	xpath_expression = '//div[contains(@class,"fsNewsSection__mostRecent")]/a'
 	container_news = driver.find_elements(By.XPATH, xpath_expression)
 	list_upate_news = []
 	for i, block in enumerate(container_news):
 		news_link = block.get_attribute('href')
-		news_date = block.find_element(By.CLASS_NAME, '_newsMeta_gh8ui_5').text
+		news_date = block.find_element(By.XPATH, './/div[@data-testid="wcl-newsMetaInfo"]').text
 		date_utc = process_date(news_date)
 		title = block.find_element(By.XPATH, './/div[@role="heading"]').text
 		image = wait.until(EC.element_to_be_clickable((By.XPATH, './/figure/picture/img')))
@@ -136,25 +136,25 @@ def click_show_more_news(driver, max_older_news, max_click_more = 5):
 	wait = WebDriverWait(driver, 5)
 
 	# FIND THE BUTTON SHOW MORE NEWS
-	showmore = driver.find_elements(By.CLASS_NAME, 'showMore.showMore--fsNews')
+	showmore = driver.find_elements(By.CSS_SELECTOR, '.showMore.showMore--fsNews')
 	if len(showmore)!= 0:
 		click_more = True
 	else:
 		click_more = False
 
 	# LOAD THE CURRENT BLOCKS OF NEWS
-	xpath_expression = '//div[@class="fsNewsSection fsNewsSection__mostRecent fsNewsSection__noTopped"]/a'
+	xpath_expression = '//div[contains(@class,"fsNewsSection__mostRecent")]/a'
 	container_news = driver.find_elements(By.XPATH, xpath_expression)
 	current_len = len(container_news)
 
 	# CHECK THE DATE OF THE LAST NEWS FOUND 
-	news_date = container_news[-1].find_element(By.XPATH, '//div[@data-testid="wcl-newsMetaGroup"]').text	
+	news_date = container_news[-1].find_element(By.XPATH, './/div[@data-testid="wcl-newsMetaGroup"]').text	
 	date_utc = process_date(news_date)
 	click_count = 0
 	while click_count < max_click_more and click_more and utc_time_naive - date_utc < timedelta(days=max_older_news):
 		# CLICK ON MORE NEWS 
 		print("MORE_NEWS: ", click_count, end ='')
-		showmore = wait.until(EC.element_to_be_clickable((By.CLASS_NAME, 'showMore.showMore--fsNews')))
+		showmore = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, '.showMore.showMore--fsNews')))
 		showmore.click()
 		new_len = current_len
 
@@ -169,12 +169,12 @@ def click_show_more_news(driver, max_older_news, max_click_more = 5):
 		webdriver.ActionChains(driver).send_keys(Keys.PAGE_UP).perform()
 
 		# VERIFY IF STILL APPEAR SHOW MORE NEWS BUTTON
-		showmore = driver.find_elements(By.CLASS_NAME, 'showMore.showMore--fsNews')
+		showmore = driver.find_elements(By.CSS_SELECTOR, '.showMore.showMore--fsNews')
 		if len(showmore)== 0:
 			click_more = False
 		container_news = driver.find_elements(By.XPATH, xpath_expression)
 		# news_date = container_news[-1].find_element(By.CLASS_NAME, '_newsMeta_gh8ui_5').text
-		news_date = container_news[-1].find_element(By.XPATH, '//div[@data-testid="wcl-newsMetaGroup"]').text
+		news_date = container_news[-1].find_element(By.XPATH, './/div[@data-testid="wcl-newsMetaGroup"]').text
 		print(news_date)
 		date_utc = process_date(news_date)
 		click_count += 1
@@ -183,12 +183,12 @@ def click_show_more_news(driver, max_older_news, max_click_more = 5):
 
 def get_news_info_v2(driver, dict_news):	
 	wait = WebDriverWait(driver, 10)
-	image = wait.until(EC.element_to_be_clickable((By.XPATH, '//div[@class="imageContainer"]/figure/picture/img')))
+	image = wait.until(EC.element_to_be_clickable((By.XPATH, '//figure//img | //div[contains(@class,"imageContainer")]//img')))
 	image_url = image.get_attribute('src')
 	articlebody = driver.find_element(By.CLASS_NAME, 'fsNewsArticle__content')
 	summary = articlebody.find_element(By.XPATH, './/div[@class="fsNewsArticle__perex"]')
 	body_html = articlebody.get_attribute('outerHTML')
-	body_html = body_html.replace(str(summary.get_attribute('ourterHTML')), '')
+	body_html = body_html.replace(str(summary.get_attribute('outerHTML')), '')
 	# image_path = random_name(folder = 'images/news/full_images')
 	image_path = 'images/news/full_images/' + dict_news['image'].replace('.avif','.png')
 	save_image(driver, image_url, image_path)
@@ -225,8 +225,8 @@ def extract_news_info(driver):
 			######################################################
 			#	EXCEPTION TO HANDLE WEBPAGE ISSUES     #
 			######################################################
+			count_max = 0
 			while True:
-				count_max = 0
 				try:
 					wait_load_detailed_news(driver, current_url)
 					print("Title: ",current_dict['title'])
@@ -236,13 +236,13 @@ def extract_news_info(driver):
 					try:
 						save_news_database(dict_news)
 					except Exception as e:
-						print(f"An error occurred: {e}")
+						print(f"Error saving to DB: {e}")
 					break
-				except:
-					print('Loading again...')
+				except Exception as e:
+					print(f'Loading again... ({e})')
 					if count_max == 2:
 						break
-					count_max +=1			
+					count_max += 1			
 		os.remove(file_path)
 
 def main_extract_news(driver, list_sports, MAX_OLDER_DATE_ALLOWED = 31):
@@ -263,7 +263,7 @@ def main_extract_news(driver, list_sports, MAX_OLDER_DATE_ALLOWED = 31):
 		
 		# WAIT UNTIL LOAD PAGE
 		print(news_url)
-		wait_update_page(driver, news_url, "section__mainTitle")
+		wait_update_page(driver, news_url, "fsNewsSection")
 		file_point = False
 		if not(file_point):
 			####################### GET LAST NEWS SAVED #######################		
@@ -275,7 +275,7 @@ def main_extract_news(driver, list_sports, MAX_OLDER_DATE_ALLOWED = 31):
 			last_index = 0 
 			click_more_count = 0
 			################ LIST OF CONTAINERS NEWS #################
-			xpath_expression = '//div[@class="fsNewsSection fsNewsSection__mostRecent fsNewsSection__noTopped"]/a'
+			xpath_expression = '//div[contains(@class,"fsNewsSection__mostRecent")]/a'
 			container_news = driver.find_elements(By.XPATH, xpath_expression)
 			new_date_update = ''
 			while last_index < len(container_news):

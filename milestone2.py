@@ -632,6 +632,11 @@ def create_leagues(driver, list_sports):
                                                                    'country_id':league_info['country_id']}
 
                     # GET SECTIONS LINKS
+                    if sport_leag_countr_name_json not in dict_leagues_ready_json:
+                        dict_leagues_ready_json[sport_leag_countr_name_json] = {'league_name': league_info['league_name'],
+                                                                'url': league_url, 'league_id': league_id,
+                                                                'season_id': league_info['season_id'],
+                                                                'country_id': league_info['country_id']}
                     dict_sections_links = get_sections_links(driver)
                     for section, url_section in dict_sections_links.items():
                         dict_leagues_ready_json[sport_leag_countr_name_json][section] = url_section

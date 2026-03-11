@@ -180,39 +180,108 @@ def launch_navigator(url, headless= True, enable_profile=False):
     driver.execute_script("document.body.style.zoom='50%'")    
     return driver
 
-def login(driver, email_= "jignacio@jweglobal.com", password_ = "Caracas5050@"):
-    wait = WebDriverWait(driver, 10)
+def login(driver, email_="jignacio@jweglobal.com", password_="Caracas5050@\n", max_attempts=3):
+    """
+    Login robusto en FlashScore.
+    - Reintenta hasta max_attempts veces si cualquier paso falla
+    - Envía ESC antes de cada intento para cerrar modales/overlays
+    - Usa JS click como fallback si el click normal está bloqueado
+    - Recarga la página entre intentos para partir de estado limpio
+    - Verifica que la sesión quedó activa al final
+    """
+    wait = WebDriverWait(driver, 15)
+    wait_short = WebDriverWait(driver, 8)
 
-    try:
-        # Accept cookies
-        accept_button = wait.until(EC.element_to_be_clickable((By.ID, "onetrust-accept-btn-handler")))
-        accept_button.click()
-    except:
-        print("Continue...")
-    # Click on login
-    login_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//span[text()='LOGIN']")))
-    # login_button = driver.find_element(By.CLASS_NAME, 'header__icon.header__icon--user')
-    login_button.click()
+    def esc_and_wait(seconds=2):
+        try:
+            webdriver.ActionChains(driver).send_keys(Keys.ESCAPE).perform()
+        except Exception:
+            pass
+        time.sleep(seconds)
 
-    # Select login mode
-    continue_email = wait.until(EC.element_to_be_clickable(("xpath", "//button[span[text()='Continue with email']]")))
-    continue_email.click()
+    def safe_click(element):
+        """Click normal con fallback a JavaScript si hay overlay bloqueando."""
+        try:
+            element.click()
+        except Exception:
+            driver.execute_script("arguments[0].click();", element)
 
-    email = driver.find_element(By.ID,'email')
-    email.clear()
-    email = wait.until(EC.visibility_of_element_located((By.ID,'email')))
-    email.send_keys(email_)
+    for attempt in range(1, max_attempts + 1):
+        try:
+            print(f"  [Login] Intento {attempt}/{max_attempts}...")
 
-    password_element = driver.find_element(By.ID,'passwd')
-    password_element.clear()
-    password_element.send_keys(password_)
-    xpath_expression = '//button[contains(., "Log In")]'
-    logig = driver.find_element(By.XPATH, xpath_expression)
-    logig.click()
-    time.sleep(6)
-    print("Login...", '\n')
-    driver.execute_script("document.body.style.zoom='50%'")
-    webdriver.ActionChains(driver).send_keys(Keys.ESCAPE).perform()
+            # ESC al inicio — cierra cualquier modal/popup abierto
+            esc_and_wait(2)
+
+            # Aceptar cookies si aparece el banner
+            try:
+                accept_btn = WebDriverWait(driver, 5).until(
+                    EC.element_to_be_clickable((By.ID, "onetrust-accept-btn-handler"))
+                )
+                safe_click(accept_btn)
+                time.sleep(1)
+            except Exception:
+                print("  [Login] Cookies: ya aceptadas o no aparecieron")
+
+            # Click en LOGIN
+            login_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//span[text()='LOGIN']")))
+            safe_click(login_button)
+
+            # Seleccionar modo email
+            continue_email = wait.until(EC.element_to_be_clickable(
+                (By.XPATH, "//button[span[text()='Continue with email']]")
+            ))
+            safe_click(continue_email)
+
+            # Email — clear + pequeña pausa + send_keys
+            email_field = wait.until(EC.visibility_of_element_located((By.ID, 'email')))
+            email_field.clear()
+            time.sleep(0.5)
+            email_field.send_keys(email_.strip())
+
+            # Password — clear + pequeña pausa + send_keys
+            passwd_field = wait.until(EC.visibility_of_element_located((By.ID, 'passwd')))
+            passwd_field.clear()
+            time.sleep(0.5)
+            passwd_field.send_keys(password_)
+
+            # Click en Log In — opcional si \n ya envió el formulario
+            try:
+                login_btn = WebDriverWait(driver, 4).until(EC.element_to_be_clickable(
+                    (By.XPATH, '//button[contains(., "Log In")]')
+                ))
+                safe_click(login_btn)
+            except Exception:
+                pass  # \n ya envió el formulario
+
+            # Verificar sesión activa — header__text--loggedIn aparece si el login fue exitoso
+            try:
+                wait_short.until(EC.presence_of_element_located((By.XPATH, '//*[contains(@class,"header__text--loggedIn")]')))
+                print(f"  [Login] Exitoso en intento {attempt}\n")
+                driver.execute_script("document.body.style.zoom='50%'")
+                esc_and_wait(1)
+                return  # ← login OK, salir
+            except Exception:
+                error_els = driver.find_elements(
+                    By.XPATH, '//*[contains(@class,"error") or contains(@class,"alert")]'
+                )
+                error_text = ' | '.join([e.text for e in error_els if e.text.strip()])
+                raise Exception(f"Sesión no activa tras click. Mensaje: {error_text or 'sin detalle'}")
+
+        except Exception as e:
+            print(f"  [Login] Intento {attempt} fallido: {e}")
+            if attempt < max_attempts:
+                print(f"  [Login] Enviando ESC y recargando página antes de reintentar...")
+                esc_and_wait(3)
+                try:
+                    driver.get('https://www.flashscore.com')
+                    time.sleep(4)
+                except Exception:
+                    pass
+            else:
+                raise RuntimeError(
+                    f"Login fallido tras {max_attempts} intentos. Último error: {e}"
+                )
 
 def wait_update_page(driver, url, class_name):
 
@@ -254,14 +323,15 @@ def save_image(driver, image_url, image_path):
 
 def process_date(date):
     date_format = "%d.%m.%Y %H:%M:%S"
-    if 'min ago' in date:       
-        min_ = int(re.findall(r'(\d+)\ min ago', date)[0])        
-        news_time_post = local_time_naive - timedelta(minutes=min_)
+    local_time_now = datetime.now()
+    if 'min ago' in date:
+        min_ = int(re.findall(r'(\d+)\ min ago', date)[0])
+        news_time_post = local_time_now - timedelta(minutes=min_)
     elif ' h ago' in date:
-        hours_ = int(re.findall(r'(\d+)\ h ago', date)[0])        
-        news_time_post = local_time_naive - timedelta(hours=hours_)
+        hours_ = int(re.findall(r'(\d+)\ h ago', date)[0])
+        news_time_post = local_time_now - timedelta(hours=hours_)
     elif 'Yesterday' in date:
-        previous_day = local_time_naive - timedelta(days=1)
+        previous_day = local_time_now - timedelta(days=1)
         time_post = re.findall(r'\d+:\d+', date)[0]+':00'
         time_post = datetime.strptime(time_post, "%H:%M:%S")
         news_time_post = datetime(
@@ -273,7 +343,7 @@ def process_date(date):
             time_post.second,
         )
     elif 'Just now' in date:
-        news_time_post = local_time_naive
+        news_time_post = local_time_now
     else:       
         date = date +':00'
         news_time_post = datetime.strptime(date, date_format)   
@@ -491,24 +561,32 @@ def store_league_info(sport_name, league_name, number_matches, n_teams_league, s
     if sport_name not in sports_data:
         sports_data[sport_name] = {}
 
-    enable_flag = number_matches > 0    
+    enable_flag = False
 
     # Store or update league information check if it was created previously
     if league_name in sports_data[sport_name].keys():
         sports_data[sport_name][league_name]['number_matches'] = number_matches
         sports_data[sport_name][league_name]['date'] = current_date
         sports_data[sport_name][league_name]['number_teams'] = n_teams_league
-        sports_data[sport_name][league_name]['enable'] = enable_flag
-        
+        sports_data[sport_name][league_name]['enable'] = enable_flag        
     else:
         sports_data[sport_name][league_name] = {
             "number_matches": number_matches,
             "date": current_date,
+            "number_teams":n_teams_league,
             "enable": enable_flag
         }
     return sports_data
 
 def enable_league(global_check_point, sport_name, league_name, stage='M4',section='results'):
+    print_section(" ENABLE LEAGUE: ")
+    print(global_check_point[sport_name])
+    if not section in global_check_point[sport_name][stage]:
+        global_check_point[sport_name][stage][section] = {}
+        global_check_point[sport_name][stage][section]['league'] = ''
+        global_check_point[sport_name][stage][section]['round'] = ''
+        global_check_point[sport_name][stage][section]['match_name'] = ''
+        return True
     if global_check_point[sport_name][stage][section]['league'] == '':
         print_section("ENABLE LEAGUE")
         return True
@@ -531,14 +609,9 @@ def round_files_exist(sport_name, league_name, name_section):
         return len(os.listdir(folder)) > 0
     return False
 
-def round_enable(global_check_point, sport_name, section, round_file):
-    if global_check_point[sport_name]['M4'][section]['round'] == '':
-        return True
-    if global_check_point[sport_name]['M4'][section]['round'] == round_file:
-        print_section("ENABLE ROUND")
-        return True
-    else:
-        return False
+def is_checkpoint_reached(checkpoint_value, current_value):
+    """Returns True if current_value is the resume point or no checkpoint exists."""
+    return checkpoint_value == '' or checkpoint_value == current_value
     
 def enable_match(global_check_point, sport_name, section, match_name):
     if global_check_point[sport_name]['M4'][section]['match_name'] == '':
@@ -548,5 +621,29 @@ def enable_match(global_check_point, sport_name, section, match_name):
         return True
     else:
         return False
+
+
+def get_resume_point(global_check_point, sport_name, milestone='M3', section=None):
+    """
+    Retorna el punto de reanudación (liga, equipo/partido) para un deporte dado.
+    Si no existe checkpoint previo retorna strings vacíos → inicio desde cero.
+
+    Args:
+        section (str|None): Clave de subsección dentro del milestone (ej: 'results', 'fixtures').
+                            Usar solo en M4 donde el checkpoint tiene un nivel extra.
+    """
+    m = global_check_point.get(sport_name, {}).get(milestone, {})
+    if section is not None:
+        m = m.get(section, {})
+    return m.get('league', ''), m.get('team_name', '')
+
+
+def update_resume_point(global_check_point, sport_name, league, team_name, milestone='M3'):
+    """Persiste el punto de reanudación actual en global_check_point.json."""
+    global_check_point.setdefault(sport_name, {})[milestone] = {
+        'sport': sport_name, 'league': league, 'team_name': team_name
+    }
+    save_check_point('check_points/global_check_point.json', global_check_point)
+
 
 int_folders()

@@ -149,7 +149,7 @@ def live_games(driver, list_sports):
 
 	while True:
 		current_date = datetime.now().date()#.strftime('%H:%M:%S')
-		print_section(" Current_date:{current_date} \n ")
+		print_section(f" Current_date:{current_date} \n ")
 		# date = dt_object.date()
 		# time = dt_object.time()
 
